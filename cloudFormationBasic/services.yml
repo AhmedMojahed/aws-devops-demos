@@ -114,3 +114,10 @@ Resources:
           #     - !Ref ContaienrEntryPoint
       # Volumes:
       #   - Name: !Ref SourceVolumeMP
+
+Outputs:
+  ECSService:
+    Description: Information about the value
+    Value: !Ref ECSService
+    Export:
+      Name: !Sub ${EnvironmentName}-ECSService
