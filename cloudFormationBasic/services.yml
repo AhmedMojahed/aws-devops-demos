@@ -1,0 +1,116 @@
+---
+Parameters:
+  EnvironmentName:
+    Description: An Environment name that will be prefixed to resources
+    Type: String
+    Default: "Test"
+
+  # ContainerName:
+  #   Description: A Name for the container
+  #   Type: String
+  #   Default: "WebApp"
+  ServiceName:
+    Type: String
+    Default: "nginx"
+    Description: A name for the service
+
+  ImageUrl:
+    Description: The url for the image  used to start the container
+    Type: String
+    Default: "nginx"
+
+  # ContaienrEntryPoint:
+  #   Description: container EntryPoint
+  #   Type: String
+  #   Default: "/usr/sbin/apache2,D,FOREGROUND"
+
+  # SourceVolumeMP:
+  #   Description: The url for the image  used to start the container
+  #   Type: String
+  #   Default: "my-vol"
+
+  # ContainerPathMP:
+  #   Description: The url for the image  used to start the container
+  #   Type: String
+  #   Default: "/var/www/my-vol"
+
+  ContainerCpu:
+    Description: cpu core speed in MHz
+    Type: Number
+    Default: 256
+
+  ContainerMem:
+    Description: Amount of ram needed for the container
+    Type: Number
+    Default: 512
+  AppContainerPort:
+    Description: In container app port
+    Type: Number
+    Default: 80
+
+  AppHostPort:
+    Description: container mapped port in the host
+    Type: Number
+    Default: 80
+
+  DesiredCount:
+    Type: Number
+    Default: 1
+    Description: How many copies of the service task to run
+
+Resources:
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      DesiredCount: !Ref DesiredCount
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: !Ref ServiceName
+          ContainerPort: !Ref "AppContainerPort"
+          TargetGroupArn:
+            Fn::ImportValue: !Sub ${EnvironmentName}-ECS-TG
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - Fn::ImportValue: !Sub ${EnvironmentName}-ECS-SG
+          Subnets:
+            - Fn::ImportValue: !Sub ${EnvironmentName}-PRI1-SN
+            - Fn::ImportValue: !Sub ${EnvironmentName}-PRI2-SN
+      Cluster:
+        Fn::ImportValue: !Sub "${EnvironmentName}-ECS-CLUSTER"
+      # Role:
+      #   Fn::ImportValue: !Sub ${EnvironmentName}-ECSRole
+      TaskDefinition: !Ref "ECSTaskDefinition"
+
+  ECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref "ServiceName"
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Memory: !Ref ContainerMem
+      Cpu: !Ref ContainerCpu
+      TaskRoleArn:
+        Fn::ImportValue: !Sub ${EnvironmentName}-ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Image: !Ref ImageUrl
+          Memory: !Ref ContainerMem
+          Cpu: !Ref ContainerCpu
+          Essential: true
+          PortMappings:
+            - ContainerPort:
+                Ref: "AppContainerPort"
+              HostPort:
+                Ref: "AppHostPort"
+          # MountPoints:
+          #   - SourceVolume: !Ref SourceVolumeMP
+          #     ContainerPath: !Ref ContainerPathMP
+          # EntryPoint:
+          #   Fn::Split:
+          #     - ","
+          #     - !Ref ContaienrEntryPoint
+      # Volumes:
+      #   - Name: !Ref SourceVolumeMP
