@@ -1,19 +1,16 @@
 version: 0.2
-
 phases:
-    install:
-        runtime-versions:
-            nodejs: 10
-        commands:
-            - echo "installing something"
     pre_build:
         commands:
-            - echo "we are in the pre build phase"
+            - $(aws ecr get-login --no-include-email)
+            - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+            - IMAGE_URI="${REPOSITORY_URI}:${TAG}"
     build:
         commands:
-            - echo "we are in the build block"
-            - echo "we will run some tests"
-            - grep -Fq "Congratulations" CICD-demo/index.html
+            - docker build --tag "${IMAGE_URI}" -f "${CODEBUILD_SRC_DIR}/nginx-service/Dockerfile" nginx-service
     post_build:
         commands:
-            - echo "we are in the post build phase"
+            - docker push "${IMAGE_URI}"
+            - printf '[{"name":"%s","imageUri":"%s"}]' "${ECS_SERVICE_NAME}" "${IMAGE_URI}" > imagedefinitions.json
+artifacts:
+    files: imagedefinitions.json

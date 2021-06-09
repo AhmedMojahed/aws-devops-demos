@@ -253,7 +253,7 @@ Resources:
           - Name: ECS_SERVICE_NAME
             Value:
               Fn::ImportValue: !Sub ${EnvironmentName}-ECSService
-      Name: !Join ["", !Ref AWS::StackName, "-BuildProject"]
+      Name: !Sub ${EnvironmentName}-BuildProject
       ServiceRole: !Ref CodeBuildServiceRole
 
   #ecs / ecr
