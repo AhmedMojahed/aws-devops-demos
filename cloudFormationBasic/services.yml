@@ -14,6 +14,11 @@ Parameters:
     Default: "nginx"
     Description: A name for the service
 
+  ListenerPort:
+    Type: Number
+    Default: 80
+    Description: Listener Port for each service
+
   ImageUrl:
     Description: The url for the image  used to start the container
     Type: String
@@ -58,6 +63,16 @@ Parameters:
     Default: 1
     Description: How many copies of the service task to run
 
+  # TargetGroupName:
+  #   Type: String
+  #   Default: "nginx-TG"
+  #   Description: A name for the service Target Group
+
+  VarPath:
+    Type: String
+    Default: "/"
+    Description: Path for service route and healthcheck
+
 Resources:
   ECSService:
     Type: AWS::ECS::Service
@@ -66,10 +81,9 @@ Resources:
       DesiredCount: !Ref DesiredCount
       LaunchType: FARGATE
       LoadBalancers:
-        - ContainerName: !Ref ServiceName
+        - ContainerName: !Join ["-", [!Ref "ServiceName", "container"]]
           ContainerPort: !Ref "AppContainerPort"
-          TargetGroupArn:
-            Fn::ImportValue: !Sub ${EnvironmentName}-ECS-TG
+          TargetGroupArn: !Ref ECSTG
       NetworkConfiguration:
         AwsvpcConfiguration:
           SecurityGroups:
@@ -92,19 +106,19 @@ Resources:
       NetworkMode: awsvpc
       Memory: !Ref ContainerMem
       Cpu: !Ref ContainerCpu
-      TaskRoleArn:
+      ExecutionRoleArn:
         Fn::ImportValue: !Sub ${EnvironmentName}-ECSTaskExecutionRole
+      # TaskRoleArn:
+      #   Fn::ImportValue: !Sub ${EnvironmentName}-ECSTaskExecutionRole
       ContainerDefinitions:
-        - Name: !Ref ServiceName
+        - Name: !Join ["-", [!Ref "ServiceName", "container"]]
           Image: !Ref ImageUrl
           Memory: !Ref ContainerMem
           Cpu: !Ref ContainerCpu
           Essential: true
           PortMappings:
-            - ContainerPort:
-                Ref: "AppContainerPort"
-              HostPort:
-                Ref: "AppHostPort"
+            - ContainerPort: !Ref "AppContainerPort"
+              HostPort: !Ref "AppHostPort"
           # MountPoints:
           #   - SourceVolume: !Ref SourceVolumeMP
           #     ContainerPath: !Ref ContainerPathMP
@@ -115,9 +129,66 @@ Resources:
       # Volumes:
       #   - Name: !Ref SourceVolumeMP
 
+  MyLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn:
+        Fn::ImportValue: !Sub ${EnvironmentName}-ALB
+      Port: !Ref ListenerPort
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTG
+
+  MyLoadBalancerListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref MyLoadBalancerListener
+      Priority: 1
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTG
+      Conditions:
+        - Field: path-pattern
+          Values: [!Ref VarPath]
+
+  ECSTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: !Ref VarPath
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: !Join ["-", [!Ref "ServiceName", "target-group"]]
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue: !Sub ${EnvironmentName}-VPCID
+
 Outputs:
   ECSService:
     Description: Information about the value
     Value: !Ref ECSService
     Export:
-      Name: !Sub ${EnvironmentName}-ECSService
+      Name: !Sub ${EnvironmentName}-${ServiceName}
+
+  ECSTG:
+    Description: A reference to target groups
+    Value: !Ref ECSTG
+    Export:
+      Name: !Sub ${EnvironmentName}-${ServiceName}-TG
+
+  ECSTaskDefinitionArn:
+    Description: A reference to ECSTaskDefinition Arn
+    Value: !Ref ECSTaskDefinition
+    Export:
+      Name: !Sub ${EnvironmentName}-${ServiceName}-TD-Arn
+
+  ServiceContainerName:
+    Description: A reference to ECSTaskDefinition Arn
+    Value: !Join ["-", [!Ref "ServiceName", "container"]]
+    Export:
+      Name: !Sub ${EnvironmentName}-${ServiceName}-ContaienrName

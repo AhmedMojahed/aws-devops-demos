@@ -228,42 +228,42 @@ Resources:
                 - Ref: PublicSubnet2
             Type: application
 
-    MyLoadBalancerListener:
-        Type: AWS::ElasticLoadBalancingV2::Listener
-        Properties:
-            LoadBalancerArn: !Ref MyLoadBalancer
-            Port: "80"
-            Protocol: HTTP
-            DefaultActions:
-                - Type: forward
-                  TargetGroupArn: !Ref ECSTG
+    # MyLoadBalancerListener:
+    #     Type: AWS::ElasticLoadBalancingV2::Listener
+    #     Properties:
+    #         LoadBalancerArn: !Ref MyLoadBalancer
+    #         Port: "80"
+    #         Protocol: HTTP
+    #         DefaultActions:
+    #             - Type: forward
+    #               TargetGroupArn: !Ref ECSTG
 
-    MyLoadBalancerListenerRule:
-        Type: AWS::ElasticLoadBalancingV2::ListenerRule
-        Properties:
-            ListenerArn: !Ref MyLoadBalancerListener
-            Priority: 1
-            Actions:
-                - Type: forward
-                  TargetGroupArn: !Ref ECSTG
-            Conditions:
-                - Field: path-pattern
-                  Values: [/]
+    # MyLoadBalancerListenerRule:
+    #     Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    #     Properties:
+    #         ListenerArn: !Ref MyLoadBalancerListener
+    #         Priority: 1
+    #         Actions:
+    #             - Type: forward
+    #               TargetGroupArn: !Ref ECSTG
+    #         Conditions:
+    #             - Field: path-pattern
+    #               Values: [/]
 
-    ECSTG:
-        Type: AWS::ElasticLoadBalancingV2::TargetGroup
-        Properties:
-            HealthCheckIntervalSeconds: 10
-            HealthCheckPath: /
-            HealthCheckProtocol: HTTP
-            HealthCheckTimeoutSeconds: 5
-            HealthyThresholdCount: 2
-            Name: ECSTG
-            Port: 80
-            Protocol: HTTP
-            UnhealthyThresholdCount: 2
-            TargetType: ip
-            VpcId: !Ref "VPC"
+    # ECSTG:
+    #     Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    #     Properties:
+    #         HealthCheckIntervalSeconds: 10
+    #         HealthCheckPath: /
+    #         HealthCheckProtocol: HTTP
+    #         HealthCheckTimeoutSeconds: 5
+    #         HealthyThresholdCount: 2
+    #         Name: ECSTG
+    #         Port: 80
+    #         Protocol: HTTP
+    #         UnhealthyThresholdCount: 2
+    #         TargetType: ip
+    #         VpcId: !Ref "VPC"
 
     MyLoadBalancerSecGroup:
         Type: AWS::EC2::SecurityGroup
@@ -350,10 +350,11 @@ Resources:
                           - Effect: Allow
                             Action:
                                 # Allow the ECS Tasks to download images from ECR
-                                - "ecr:GetAuthorizationToken"
-                                - "ecr:BatchCheckLayerAvailability"
-                                - "ecr:GetDownloadUrlForLayer"
-                                - "ecr:BatchGetImage"
+                                - "ecr:*"
+                                # - "ecr:GetAuthorizationToken"
+                                # - "ecr:BatchCheckLayerAvailability"
+                                # - "ecr:GetDownloadUrlForLayer"
+                                # - "ecr:BatchGetImage"
 
                                 # Allow the ECS tasks to upload logs to CloudWatch
                                 - "logs:CreateLogStream"
@@ -437,11 +438,11 @@ Outputs:
         Export:
             Name: !Sub ${EnvironmentName}-ECS-CLUSTER
 
-    ECSTG:
-        Description: A reference to target groups
-        Value: !Ref ECSTG
-        Export:
-            Name: !Sub ${EnvironmentName}-ECS-TG
+    # ECSTG:
+    #     Description: A reference to target groups
+    #     Value: !Ref ECSTG
+    #     Export:
+    #         Name: !Sub ${EnvironmentName}-ECS-TG
 
     EcsSecurityGroup:
         Description: A reference to ecs SecurityGroup
