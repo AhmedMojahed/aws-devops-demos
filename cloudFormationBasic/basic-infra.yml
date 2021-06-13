@@ -244,8 +244,25 @@ Resources:
             Protocol: HTTP
             DefaultActions:
                 - Type: forward
-                  TargetGroupArn: !Ref ECSTG
+                  TargetGroupArn: !Ref DummyTargetGroupPublic
 
+    DummyTargetGroupPublic:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            HealthCheckIntervalSeconds: 6
+            HealthCheckPath: /
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 5
+            HealthyThresholdCount: 2
+            TargetType: ip
+            TargetGroupAttributes:
+                - Key: deregistration_delay.timeout_seconds
+                  Value: "0"
+            Name: DummyTargetGroup
+            Port: 80
+            Protocol: HTTP
+            UnhealthyThresholdCount: 2
+            VpcId: !Ref "VPC"
     # MyLoadBalancerListenerRule:
     #     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     #     Properties:
