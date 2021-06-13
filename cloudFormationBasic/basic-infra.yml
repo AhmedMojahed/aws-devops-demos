@@ -236,15 +236,15 @@ Resources:
                 - Ref: PublicSubnet2
             Type: application
 
-    # MyLoadBalancerListener:
-    #     Type: AWS::ElasticLoadBalancingV2::Listener
-    #     Properties:
-    #         LoadBalancerArn: !Ref MyLoadBalancer
-    #         Port: "80"
-    #         Protocol: HTTP
-    #         DefaultActions:
-    #             - Type: forward
-    #               TargetGroupArn: !Ref ECSTG
+    MyLoadBalancerListener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            LoadBalancerArn: !Ref MyLoadBalancer
+            Port: "80"
+            Protocol: HTTP
+            DefaultActions:
+                - Type: forward
+                  TargetGroupArn: !Ref ECSTG
 
     # MyLoadBalancerListenerRule:
     #     Type: AWS::ElasticLoadBalancingV2::ListenerRule

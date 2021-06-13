@@ -124,16 +124,16 @@ Resources:
       # Volumes:
       #   - Name: !Ref SourceVolumeMP
 
-  MyLoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalancerArn:
-        Fn::ImportValue: !Sub ${EnvironmentName}-ALB
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref ECSTG
+  # MyLoadBalancerListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties:
+  #     LoadBalancerArn:
+  #       Fn::ImportValue: !Sub ${EnvironmentName}-ALB
+  #     Port: 80
+  #     Protocol: HTTP
+  #     DefaultActions:
+  #       - Type: forward
+  #         TargetGroupArn: !Ref ECSTG
 
   MyLoadBalancerListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
