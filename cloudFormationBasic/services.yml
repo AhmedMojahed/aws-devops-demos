@@ -5,40 +5,15 @@ Parameters:
     Type: String
     Default: "Test"
 
-  # ContainerName:
-  #   Description: A Name for the container
-  #   Type: String
-  #   Default: "WebApp"
   ServiceName:
     Type: String
     Default: "nginx"
     Description: A name for the service
 
-  ListenerPort:
-    Type: Number
-    Default: 80
-    Description: Listener Port for each service
-
   ImageUrl:
     Description: The url for the image  used to start the container
     Type: String
     Default: "nginx"
-
-  # ContaienrEntryPoint:
-  #   Description: container EntryPoint
-  #   Type: String
-  #   Default: "/usr/sbin/apache2,D,FOREGROUND"
-
-  # SourceVolumeMP:
-  #   Description: The url for the image  used to start the container
-  #   Type: String
-  #   Default: "my-vol"
-
-  # ContainerPathMP:
-  #   Description: The url for the image  used to start the container
-  #   Type: String
-  #   Default: "/var/www/my-vol"
-
   ContainerCpu:
     Description: cpu core speed in MHz
     Type: Number
@@ -63,15 +38,35 @@ Parameters:
     Default: 1
     Description: How many copies of the service task to run
 
-  # TargetGroupName:
-  #   Type: String
-  #   Default: "nginx-TG"
-  #   Description: A name for the service Target Group
-
   VarPath:
     Type: String
     Default: "/"
     Description: Path for service route and healthcheck
+
+  # ContainerName:
+  #   Description: A Name for the container
+  #   Type: String
+  #   Default: "WebApp"
+  # ListenerPort:
+  #   Type: Number
+  #   Default: 80
+  #   Description: Listener Port for each service
+  # ContaienrEntryPoint:
+  #   Description: container EntryPoint
+  #   Type: String
+  #   Default: "/usr/sbin/apache2,D,FOREGROUND"
+  # SourceVolumeMP:
+  #   Description: The url for the image  used to start the container
+  #   Type: String
+  #   Default: "my-vol"
+  # ContainerPathMP:
+  #   Description: The url for the image  used to start the container
+  #   Type: String
+  #   Default: "/var/www/my-vol"
+  # TargetGroupName:
+  #   Type: String
+  #   Default: "nginx-TG"
+  #   Description: A name for the service Target Group
 
 Resources:
   ECSService:
@@ -134,7 +129,7 @@ Resources:
     Properties:
       LoadBalancerArn:
         Fn::ImportValue: !Sub ${EnvironmentName}-ALB
-      Port: !Ref ListenerPort
+      Port: 80
       Protocol: HTTP
       DefaultActions:
         - Type: forward

@@ -29,6 +29,14 @@ Parameters:
         Type: String
         Default: 10.0.3.0/24
 
+    ECRRepoName:
+        Type: String
+        Default: mogahed-ecr-repo
+
+    ArtifatBucketName:
+        Type: String
+        Default: mogahed-bucket
+
 Resources:
     VPC:
         Type: AWS::EC2::VPC
@@ -350,11 +358,11 @@ Resources:
                           - Effect: Allow
                             Action:
                                 # Allow the ECS Tasks to download images from ECR
-                                - "ecr:*"
-                                # - "ecr:GetAuthorizationToken"
-                                # - "ecr:BatchCheckLayerAvailability"
-                                # - "ecr:GetDownloadUrlForLayer"
-                                # - "ecr:BatchGetImage"
+                                # - "ecr:*"
+                                - "ecr:GetAuthorizationToken"
+                                - "ecr:BatchCheckLayerAvailability"
+                                - "ecr:GetDownloadUrlForLayer"
+                                - "ecr:BatchGetImage"
 
                                 # Allow the ECS tasks to upload logs to CloudWatch
                                 - "logs:CreateLogStream"
@@ -366,6 +374,24 @@ Resources:
         Type: "AWS::ECS::Cluster"
         Properties:
             ClusterName: test-cluster
+
+    ## Ecr Repo
+    EcrRepository:
+        Type: AWS::ECR::Repository
+        DeletionPolicy: Delete
+        # DeletionPolicy: Retain
+        Properties:
+            RepositoryName: !Ref ECRRepoName
+
+    ## s3 bucket
+    ArtifactStoreBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Delete
+        UpdateReplacePolicy: Delete
+        Properties:
+            BucketName: !Ref ArtifatBucketName
+            VersioningConfiguration:
+                Status: Enabled
 
 Outputs:
     ExternalUrl:
@@ -455,3 +481,15 @@ Outputs:
         Value: !Ref MyLoadBalancer
         Export:
             Name: !Sub ${EnvironmentName}-ALB
+
+    EcrRepo:
+        Description: The Name of ecr repository
+        Value: !Ref EcrRepository
+        Export:
+            Name: !Sub ${EnvironmentName}-ECR-Repo
+
+    Artifact:
+        Description: The name of s3 store bucket
+        Value: !Ref ArtifactStoreBucket
+        Export:
+            Name: !Sub ${EnvironmentName}-ArtifactBucket
