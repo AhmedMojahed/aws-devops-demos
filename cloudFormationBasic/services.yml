@@ -43,6 +43,10 @@ Parameters:
     Default: "/"
     Description: Path for service route and healthcheck
 
+  ListenerPriority:
+    Type: Number
+    Default: 1
+
   # ContainerName:
   #   Description: A Name for the container
   #   Type: String
@@ -140,7 +144,7 @@ Resources:
     Properties:
       ListenerArn:
         Fn::ImportValue: !Sub ${EnvironmentName}-ALB-listener
-      Priority: 1
+      Priority: !Ref ListenerPriority
       Actions:
         - Type: forward
           TargetGroupArn: !Ref ECSTG
@@ -170,6 +174,9 @@ Outputs:
     Value: !Ref ECSService
     Export:
       Name: !Sub ${EnvironmentName}-${ServiceName}
+
+  ECSServiceName:
+    Value: !Ref ServiceName
 
   ECSTG:
     Description: A reference to target groups
