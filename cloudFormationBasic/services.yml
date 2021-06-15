@@ -138,7 +138,8 @@ Resources:
   MyLoadBalancerListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      ListenerArn: !Ref MyLoadBalancerListener
+      ListenerArn:
+        Fn::ImportValue: !Sub ${EnvironmentName}-ALB-listener
       Priority: 1
       Actions:
         - Type: forward

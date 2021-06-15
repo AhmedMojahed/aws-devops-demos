@@ -499,6 +499,12 @@ Outputs:
         Export:
             Name: !Sub ${EnvironmentName}-ALB
 
+    MyLoadBalancerListener:
+        Description: the name of LoadBalancer
+        Value: !Ref MyLoadBalancerListener
+        Export:
+            Name: !Sub ${EnvironmentName}-ALB-listener
+
     EcrRepo:
         Description: The Name of ecr repository
         Value: !Ref EcrRepository
